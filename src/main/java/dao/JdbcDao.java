@@ -1,5 +1,8 @@
 package dao;
 
+import reader.FileReader;
+import writer.ConsoleWriter;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +23,31 @@ public class JdbcDao {
             "select count(*) number from lectors where lector_id in(select id from departments where department = ?);";
     public final String GLOBAL_QUERY = "select name, surname from lectors";
 
+    public JdbcDao(){
+        try {
+            connection = DriverManager.getConnection(new FileReader().readConnectionData().get(0),
+                    new FileReader().readConnectionData().get(1),
+                    new FileReader().readConnectionData().get(2));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        //close connection when runtime is down
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                try {
+                    connection.close();
+                    preparedStatement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
+    }
+
     public String getHeadOfDepartment(String department){
         String result = null;
         try {
-            connection = DriverManager.getConnection
-                    ("jdbc:mysql://localhost:3306/littlebotscrewproject?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", "root", "root");
             preparedStatement = connection.prepareStatement(HEAD_QUERY);
             preparedStatement.setString(1, department);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -33,25 +56,16 @@ public class JdbcDao {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                preparedStatement.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         return result;
     }
 
     public String getStatisticOfDepartment(String value){
-        String[] arr = {"assistant", "associate professor", "professor"};
+        List<String> professions = new FileReader().readProfessions();
         List<Integer> list = new ArrayList<Integer>();
         try {
-            connection = DriverManager.getConnection
-                    ("jdbc:mysql://localhost:3306/littlebotscrewproject?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", "root", "root");
             preparedStatement = connection.prepareStatement(STATISTIC_QUERY);
-            for (String s : arr) {
+            for (String s : professions) {
                 preparedStatement.setString(1, s);
                 preparedStatement.setString(2, value);
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -61,33 +75,17 @@ public class JdbcDao {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                preparedStatement.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         if(list.isEmpty()){
             return "No values";
         }
-        String result = convertIntoValidResult(list);
-        return result;
-    }
-
-    public String convertIntoValidResult(List<Integer> list){
-        String result = "assistant - " + list.get(0) + "\n" +
-                        "associate professor - " + list.get(1) + "\n" +
-                        "professor - " + list.get(2) + "\n";
+        String result = new ConsoleWriter().convertIntoValidResult(list);
         return result;
     }
 
     public int getAverageSalary(String value){
         int result = 0;
         try {
-            connection = DriverManager.getConnection
-                    ("jdbc:mysql://localhost:3306/littlebotscrewproject?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", "root", "root");
             preparedStatement = connection.prepareStatement(AVERAGE_QUERY);
             preparedStatement.setString(1, value);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -96,13 +94,6 @@ public class JdbcDao {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                preparedStatement.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         return result;
     }
@@ -110,8 +101,6 @@ public class JdbcDao {
     public int getNumberOfEmployee(String value){
         int result = 0;
         try {
-            connection = DriverManager.getConnection
-                    ("jdbc:mysql://localhost:3306/littlebotscrewproject?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", "root", "root");
             preparedStatement = connection.prepareStatement(COUNT_QUERY);
             preparedStatement.setString(1, value);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -120,13 +109,6 @@ public class JdbcDao {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                preparedStatement.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         return result;
     }
@@ -134,8 +116,6 @@ public class JdbcDao {
     public List<String> getSearchLectors(String key){
         List<String> resultList = new ArrayList<String>();
         try {
-            connection = DriverManager.getConnection
-                    ("jdbc:mysql://localhost:3306/littlebotscrewproject?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", "root", "root");
             preparedStatement = connection.prepareStatement(GLOBAL_QUERY);
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()){
@@ -147,13 +127,6 @@ public class JdbcDao {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                preparedStatement.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         return resultList;
     }

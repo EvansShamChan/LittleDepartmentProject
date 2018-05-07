@@ -1,18 +1,23 @@
-import service.ConsoleService;
+import execution.CommandDistributor;
+import reader.InputReader;
+import writer.ConsoleWriter;
 
 
 public class Main {
+    static InputReader reader = new InputReader();
+    static CommandDistributor distributor = new CommandDistributor();
+
     public static void main(String[] args) {
         while(true){
-            ConsoleService.writeAvailableFunctions();
-            String command = ConsoleService.readInputCommand();//todo: write null check
+            ConsoleWriter.writeAvailableFunctions();
+            String command = reader.readInputCommand();
             if(command == null){
                 System.out.println("Invalid command: please try again");
                 continue;
             }
-            ConsoleService.execute(command);
+            distributor.distributeCommand(command);
             System.out.println("Press ENTER to continue");
-            ConsoleService.readInputCommand();
+            reader.readInputCommand();
         }
     }
 }

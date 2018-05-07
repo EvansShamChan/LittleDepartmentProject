@@ -1,0 +1,3 @@
+jdbc:mysql://localhost:3306/littlebotscrewproject?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+root
+root
